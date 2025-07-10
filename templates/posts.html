@@ -3,7 +3,7 @@
 {% block content %}
     <h1 class="mb-4">Publicaciones</h1>
 
-    {% for post in posts %}
+    {% for post in contenidos %}
         <div class="card mb-3">
             <div class="card-body">
                 <h5 class="card-title">{{ post.titulo }}</h5>
@@ -13,11 +13,18 @@
                         Publicado por {{ post.autor.username }} el {{ post.fecha.strftime('%d/%m/%Y') }}
                     </small>
                 </p>
+                <p class="card-text">
+                    <small class="text-muted">
+                        Categoría: {{ post.categoria.nombre if post.categoria else 'Sin categoría' }}
+                    </small>
+                </p>
 
                 {% if current_user.is_authenticated %}
-                     {% if post.autor.id == current_user.id %}
+                    {% if post.autor.id == current_user.id %}
                         <a href="{{ url_for('editar_post', post_id=post.id) }}" class="btn btn-warning btn-sm">Editar</a>
                         <a href="{{ url_for('eliminar_post', post_id=post.id) }}" class="btn btn-danger btn-sm">Eliminar</a>
+                    {% else %}
+                        <a href="{{ url_for('comentar_post', post_id=post.id) }}" class="btn btn-warning btn-sm">Comentar</a>
                     {% endif %}
                 {% endif %}
             </div>

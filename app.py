@@ -1,6 +1,5 @@
 import requests
-from    datetime import date
-
+from datetime import date
 from flask import Flask, flash, render_template, request, redirect, url_for
 from flask_migrate import Migrate
 from flask_sqlalchemy import SQLAlchemy
@@ -16,11 +15,11 @@ from werkzeug.security import (
     check_password_hash,
 )
 
-
 app = Flask(__name__)
 
 app.secret_key = "cualquiercosa"
-app.config['SQLALCHEMY_DATABASE_URI'] = ("mysql+pymysql://root:@localhost/efi_1er_semestre")
+app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://root:@localhost/efi_1er_semestre"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)
@@ -29,12 +28,11 @@ login_manager = LoginManager()
 login_manager.init_app(app)
 login_manager.login_view = 'login'
 
-from models import User, Entrada, Comentario, Categoria
+from models import User, Contenido, Comentario, Categoria
 
 @login_manager.user_loader
 def load_user(user_id):
     return User.query.get(int(user_id))
-
 
 @app.route('/')
 def index():
@@ -60,7 +58,7 @@ def login():
         else:
             flash('Usuario o contraseña incorrectos', 'error')
     
-    return render_template('auth/login.html')   
+    return render_template('auth/login.html')
 
 @app.route('/logout')
 @login_required
@@ -96,31 +94,87 @@ def register():
             flash('Registro exitoso. Por favor inicie sesión', 'success')
             return redirect(url_for('login'))
     
-    return render_template('auth/register.html')  
+    return render_template('auth/register.html')
 
 
-@app.route('/posts')
+@app.route('/posts', methods=['GET', 'POST'])
 def posts():
-    posts = Entrada.query.filter_by(is_active=True).all()
-    return render_template('posts.html', posts=posts)
+    if request.method == 'GET':
+
+        contenidos = Contenido.query.filter_by(is_active=True).all()
+        for post in contenidos:
+            print(f"Post ID {post.id} - Autor: {post.autor}")
+
+        return render_template('posts.html', contenidos=contenidos)
+    return render_template('posts.html')
 
 
 
-@app.route('/crear_posts')
+@app.route('/editar_post')
+@login_required
+def editar_post():
+    contenidos = Contenido.query.filter_by(is_active=True).all()
+    return redirect(url_for('editar_post'))
+
+
+
+@app.route('/eliminar_post')
+@login_required
+def eliminar_post():
+    contenidos = Contenido.query.filter_by(is_active=True).all()
+    return redirect(url_for('eliminar_post'))
+
+
+
+@app.route('/comentar_post')
+@login_required
+def comentar_post():
+    contenidos = Contenido.query.filter_by(is_active=True).all()
+    return redirect(url_for('comentar_post'))
+
+
+@app.route('/crear_posts', methods=['GET', 'POST'])
+@login_required
 def crear_posts():
-    posts = Entrada.query.filter_by(is_active=True).all()
-    return render_template('crear_posts.html', posts=posts)
+    if request.method == 'POST':
+        nombre_categoria = request.form.get('categoria', "").strip()
+        titulo = request.form.get('titulo', "").strip()
+        contenido_texto = request.form.get('contenido', "").strip()
+        if not all([nombre_categoria, titulo, contenido_texto]):
+            flash('Todos los campos son obligatorios', 'error')
+            return redirect(url_for('crear_posts'))
+        
+        try:
+            categoria = Categoria.query.filter_by(nombre=nombre_categoria).first()
+            if not categoria:
+                categoria = Categoria(nombre=nombre_categoria)
+                db.session.add(categoria)
+                db.session.commit()
+             
+            nuevo_contenido = Contenido(
+                titulo=titulo,
+                contenido=contenido_texto,
+                autor_id=current_user.id,
+                categoria_id=categoria.id
+            )
+            db.session.add(nuevo_contenido)
+            db.session.commit()
+            
+            flash('Publicación creada exitosamente', 'success')
+            return redirect(url_for('posts'))
+            
+        except Exception as e:
+            db.session.rollback()
+            flash(f'Error al crear la publicación: {str(e)}', 'error')
+            return redirect(url_for('crear_posts'))
+    
+    return render_template('crear_posts.html')
 
-#Falta hacer el formulario de crear post 
-#Falta hacer el formulario de editar post
-#Falta hacer el formulario de eliminar post
-#Falta hacer el formulario de editar usuario
-#Falta hacer el formulario de eliminar usuario
-#Falta hacer el formulario de editar entrada
-#Falta hacer el formulario de eliminar entrada
-#Falta hacer el formulario de editar comentario
-#Falta hacer el formulario de eliminar comentario
-#Falta hacer el formulario de editar respuesta
-#Falta hacer el formulario de eliminar respuesta
-#Falta hacer el formulario de editar categoria
-#Falta hacer el formulario de eliminar categoria
+
+# Otras rutas que necesito implementar:
+# - crear contenido (listo ya fue creado el 09 de Julio)
+# - editar_contenido
+# - eliminar_contenido
+# - ver_contenido (con comentarios)
+# - crear_comentario
+# - gestionar_categorias
