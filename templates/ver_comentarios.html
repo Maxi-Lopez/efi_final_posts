@@ -1,0 +1,18 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<h2>Comentarios para "{{ contenido.titulo }}"</h2>
+
+{% if comentarios %}
+    <ul>
+        {% for comentario in comentarios %}
+            <li>{{ comentario.comentario }} - <em>{{ comentario.fecha_creacion.strftime('%d/%m/%Y %H:%M') }}</em></li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No hay comentarios para este post aún.</p>
+{% endif %}
+
+<a href="{{ url_for('posts') }}" class="btn btn-secondary">Volver a los posts</a>
+
+{% endblock %}

@@ -96,42 +96,46 @@ def register():
     
     return render_template('auth/register.html')
 
-
 @app.route('/posts', methods=['GET', 'POST'])
 def posts():
     if request.method == 'GET':
-
         contenidos = Contenido.query.filter_by(is_active=True).all()
-        for post in contenidos:
-            print(f"Post ID {post.id} - Autor: {post.autor}")
-
         return render_template('posts.html', contenidos=contenidos)
     return render_template('posts.html')
 
-
-
-@app.route('/editar_post')
+@app.route('/editar_post/<int:post_id>', methods=['GET', 'POST'])
 @login_required
-def editar_post():
-    contenidos = Contenido.query.filter_by(is_active=True).all()
-    return redirect(url_for('editar_post'))
+def editar_post(post_id):
+    if request.method == 'GET':
+        contenido = Contenido.query.get_or_404(post_id)
+        return render_template('editar_post.html', contenido=contenido)
+    else:
+        contenido = Contenido.query.get_or_404(post_id)
 
+        nuevo_categoria = request.form.get('categoria', "").strip()
+        nuevo_titulo = request.form.get('titulo', "").strip()
+        nuevo_contenido = request.form.get('contenido', "").strip()
 
+        contenido.titulo = nuevo_titulo
+        contenido.contenido = nuevo_contenido
+
+        if nuevo_categoria:
+            categoria = Categoria.query.filter_by(nombre=nuevo_categoria).first()
+            if not categoria:
+                categoria = Categoria(nombre=nuevo_categoria)
+                db.session.add(categoria)
+                db.session.flush()
+            contenido.categoria_id = categoria.id
+
+        db.session.commit()
+
+    return redirect(url_for('posts'))
 
 @app.route('/eliminar_post')
 @login_required
 def eliminar_post():
     contenidos = Contenido.query.filter_by(is_active=True).all()
     return redirect(url_for('eliminar_post'))
-
-
-
-@app.route('/comentar_post')
-@login_required
-def comentar_post():
-    contenidos = Contenido.query.filter_by(is_active=True).all()
-    return redirect(url_for('comentar_post'))
-
 
 @app.route('/crear_posts', methods=['GET', 'POST'])
 @login_required
@@ -143,38 +147,64 @@ def crear_posts():
         if not all([nombre_categoria, titulo, contenido_texto]):
             flash('Todos los campos son obligatorios', 'error')
             return redirect(url_for('crear_posts'))
-        
-        try:
-            categoria = Categoria.query.filter_by(nombre=nombre_categoria).first()
-            if not categoria:
-                categoria = Categoria(nombre=nombre_categoria)
-                db.session.add(categoria)
-                db.session.commit()
-             
-            nuevo_contenido = Contenido(
-                titulo=titulo,
-                contenido=contenido_texto,
-                autor_id=current_user.id,
-                categoria_id=categoria.id
-            )
-            db.session.add(nuevo_contenido)
+
+        categoria = Categoria.query.filter_by(nombre=nombre_categoria).first()
+        if not categoria:
+            categoria = Categoria(nombre=nombre_categoria)
+            db.session.add(categoria)
             db.session.commit()
-            
-            flash('Publicación creada exitosamente', 'success')
-            return redirect(url_for('posts'))
-            
-        except Exception as e:
-            db.session.rollback()
-            flash(f'Error al crear la publicación: {str(e)}', 'error')
-            return redirect(url_for('crear_posts'))
-    
+         
+        nuevo_contenido = Contenido(
+            titulo=titulo,
+            contenido=contenido_texto,
+            autor_id=current_user.id,
+            categoria_id=categoria.id
+        )
+        db.session.add(nuevo_contenido)
+        db.session.commit()
+        
+        flash('Publicación creada exitosamente', 'success')
+        return redirect(url_for('posts'))
+
     return render_template('crear_posts.html')
+
+@app.route('/comentar_post/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def comentar_post(post_id):
+    contenido = Contenido.query.get_or_404(post_id)
+    if request.method == 'POST':
+        comentario_texto = request.form.get('comentario', '').strip()
+
+        if not comentario_texto:
+            flash('El comentario no puede estar vacío.', 'error')
+            return redirect(url_for('comentar_post', post_id=post_id))
+
+        nuevo_comentario = Comentario(
+            comentario=comentario_texto,
+            autor_id=current_user.id,
+            contenido_id=contenido.id
+        )
+
+        db.session.add(nuevo_comentario)
+        db.session.commit()
+        flash('Comentario creado exitosamente.', 'success')
+        return redirect(url_for('posts'))
+
+    return render_template('comentar_post.html', contenido=contenido)
+
+@app.route('/ver_comentarios/<int:post_id>')
+def ver_comentarios(post_id):
+    contenido = Contenido.query.get_or_404(post_id)
+    comentarios = Comentario.query.filter_by(contenido_id=post_id).all()
+    
+    return render_template('ver_comentarios.html', contenido=contenido, comentarios=comentarios)
+
 
 
 # Otras rutas que necesito implementar:
 # - crear contenido (listo ya fue creado el 09 de Julio)
-# - editar_contenido
+# - editar_contenido (listo)
 # - eliminar_contenido
-# - ver_contenido (con comentarios)
+# - ver_contenido (con comentarios) (listo ya fue creado el 10 de Julio)
 # - crear_comentario
 # - gestionar_categorias

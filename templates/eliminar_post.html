@@ -1,6 +1,9 @@
 {% extends "layout.html" %}
 
 {% block content %}
+{% if current_user.is_authenticated %}
   <h1>Aca tengo que poner el menu de editar</h1>
+
+{% endif %}
 
 {% endblock %}

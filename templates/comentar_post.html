@@ -1,6 +1,16 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <h1>Aca tengo que poner el menu de comentar</h1>
+{% if current_user.is_authenticated %}
+<h1>Comentar en: {{ contenido.titulo }}</h1>
 
+<form method="POST" action="{{ url_for('comentar_post', post_id=contenido.id) }}">
+    <div class="mb-3">
+        <label for="comentario" class="form-label">Comentario</label>
+        <textarea class="form-control" id="comentario" name="comentario" rows="4" required></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Enviar Comentario</button>
+    <a href="{{ url_for('posts') }}" class="btn btn-secondary">Cancelar</a>
+</form>
+{% endif %}
 {% endblock %}

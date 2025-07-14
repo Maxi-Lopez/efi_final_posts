@@ -1,6 +1,25 @@
 {% extends "layout.html" %}
 
 {% block content %}
-  <h1>Aca tengo que poner el menu de eliminar</h1>
+{% if current_user.is_authenticated %}
+    <h1>Editar Publicación</h1>
 
+    <form action="{{ url_for('editar_post', post_id=contenido.id) }}" method="POST">
+        <div class="mb-3">
+            <label for="categoria" class="form-label">Categoría</label>
+            <input type="text" class="form-control" id="categoria" name="categoria" value="{{ contenido.categoria }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="titulo" class="form-label">Título</label>
+            <input type="text" class="form-control" id="titulo" name="titulo" value="{{ contenido.titulo }}" required>
+        </div>
+        <div class="mb-3">
+            <label for="contenido" class="form-label">Contenido</label>
+            <textarea class="form-control" id="contenido" name="contenido" rows="5" required>{{ contenido.contenido }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+        <a href="{{ url_for('posts') }}" class="btn btn-secondary">Cancelar</a>
+    </form>
+{% endif %}
 {% endblock %}
