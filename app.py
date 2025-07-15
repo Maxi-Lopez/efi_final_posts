@@ -243,10 +243,14 @@ def posts_por_categoria(categoria_id):
     return render_template('categoria.html', categoria=categoria, posts=posts)
 
 
+
 # Otras rutas que necesito implementar:
-# - crear contenido (listo ya fue creado el 09 de Julio)
-# - editar_contenido (listo)
-# - eliminar_contenido
-# - ver_contenido (con comentarios) (listo ya fue creado el 10 de Julio)
-# - crear_comentario (listo)
-# - gestionar_categorias (listo)
+# Dentro de comentarios poner un boton para comentar
+# Dentro de comentarios poner un boton para poder denunciar el post o algun comentario
+#por mas que el post no sea de tu autoria
+# Dentro de categoria poner un placeholder para comentar 
+# En posts poner agregar una nueva categoria y post
+# Dentro de categoria poner un boton para agregar posteo
+# No borrar categoria si no existe ningun post
+# Modificar la base de datos el Contenido por (Post o Entrada)
+
