@@ -1,9 +1,14 @@
 {% extends "layout.html" %}
 
 {% block content %}
-{% if current_user.is_authenticated %}
-  <h1>Aca tengo que poner el menu de editar</h1>
+    <h3>¿Estás seguro de que deseas eliminar este post?</h3>
+    <div>
+        <p><strong>Título:</strong> {{ post.titulo }}</p>
+        <p><strong>Contenido:</strong> {{ post.contenido }}</p>
+    </div>
 
-{% endif %}
-
+    <form method="POST">
+        <button type="submit" class="btn btn-danger">Sí, Eliminar</button>
+        <a href="{{ url_for('posts_por_categoria', categoria_id=post.categoria_id) }}" class="btn btn-secondary">Cancelar</a>
+    </form>
 {% endblock %}

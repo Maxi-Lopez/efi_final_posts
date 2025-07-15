@@ -45,6 +45,7 @@ class Comentario(db.Model):
 class Categoria(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     nombre = db.Column(db.String(100), nullable=False, unique=True)
+    is_active = db.Column(db.Boolean, default=True, nullable=False)
 
     def __str__(self):
         return self.nombre

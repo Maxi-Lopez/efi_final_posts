@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block content %}
+    <h2>Publicaciones en: {{ categoria.nombre }}</h2>
+
+    {% if posts %}
+        {% for post in posts %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h4 class="card-title">{{ post.titulo }}</h4>
+                    <p class="card-text">{{ post.contenido }}</p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            Publicado por {{ post.autor.username }} el {{ post.fecha.strftime('%d/%m/%Y') }}
+                        </small>
+                    </p>
+
+                    {% if post.comentarios|length > 0 %}
+                        <a href="{{ url_for('ver_comentarios', post_id=post.id) }}" class="btn btn-info btn-sm">
+                            Comentarios ({{ post.comentarios|length }})
+                        </a>
+                    {% endif %}
+
+                    {% if current_user.is_authenticated %}
+                        <a href="{{ url_for('comentar_post', post_id=post.id) }}" class="btn btn-primary btn-sm">Comentar</a>
+
+                        {% if post.autor.id == current_user.id %}
+                            <a href="{{ url_for('editar_post', post_id=post.id) }}" class="btn btn-warning btn-sm">Editar</a>
+                            <a href="{{ url_for('eliminar_post', post_id=post.id) }}" class="btn btn-danger btn-sm">Eliminar</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>No hay publicaciones en esta categoría.</p>
+    {% endif %}
+     <div>
+        Volver <a href="{{ url_for('posts') }}">a categorias</a>
+    </div>
+{% endblock %}

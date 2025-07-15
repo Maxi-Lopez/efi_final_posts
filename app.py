@@ -96,46 +96,43 @@ def register():
     
     return render_template('auth/register.html')
 
-@app.route('/posts', methods=['GET', 'POST'])
+@app.route('/posts')
 def posts():
-    if request.method == 'GET':
-        contenidos = Contenido.query.filter_by(is_active=True).all()
-        return render_template('posts.html', contenidos=contenidos)
-    return render_template('posts.html')
+    categorias = Categoria.query.filter_by(is_active=True).order_by(Categoria.nombre).all()
+    return render_template('posts.html', categorias=categorias)
 
-@app.route('/editar_post/<int:post_id>', methods=['GET', 'POST'])
+
+@app.route('/eliminar_post/<int:post_id>', methods=['GET', 'POST'])
 @login_required
-def editar_post(post_id):
-    if request.method == 'GET':
-        contenido = Contenido.query.get_or_404(post_id)
-        return render_template('editar_post.html', contenido=contenido)
-    else:
-        contenido = Contenido.query.get_or_404(post_id)
+def eliminar_post(post_id):
+    post = Contenido.query.get(post_id)
+    
+    if not post:
+        flash('No se encontró el post', 'error')
+        return redirect(url_for('posts'))
 
-        nuevo_categoria = request.form.get('categoria', "").strip()
-        nuevo_titulo = request.form.get('titulo', "").strip()
-        nuevo_contenido = request.form.get('contenido', "").strip()
+    categoria = post.categoria
 
-        contenido.titulo = nuevo_titulo
-        contenido.contenido = nuevo_contenido
+    if request.method == 'POST':
+        post.is_active = False
+        
+        otros_posts_activos = Contenido.query.filter_by(categoria_id=categoria.id, is_active=True).count()
 
-        if nuevo_categoria:
-            categoria = Categoria.query.filter_by(nombre=nuevo_categoria).first()
-            if not categoria:
-                categoria = Categoria(nombre=nuevo_categoria)
-                db.session.add(categoria)
-                db.session.flush()
-            contenido.categoria_id = categoria.id
+        if otros_posts_activos > 0:
+            otros_posts = Contenido.query.filter_by(categoria_id=categoria.id, is_active=True).all()
+            for otro_post in otros_posts:
+                if otro_post.id != post.id:
+                    otro_post.is_active = False   
+        else:
+             categoria.is_active = False
 
         db.session.commit()
+        flash('Post desactivado exitosamente. Categoría desactivada si es el último post.', 'success')
+        return redirect(url_for('posts_por_categoria', categoria_id=categoria.id))
+    
+    return render_template('eliminar_post.html', post=post)
 
-    return redirect(url_for('posts'))
 
-@app.route('/eliminar_post')
-@login_required
-def eliminar_post():
-    contenidos = Contenido.query.filter_by(is_active=True).all()
-    return redirect(url_for('eliminar_post'))
 
 @app.route('/crear_posts', methods=['GET', 'POST'])
 @login_required
@@ -167,6 +164,39 @@ def crear_posts():
         return redirect(url_for('posts'))
 
     return render_template('crear_posts.html')
+
+
+@app.route('/editar_post/<int:post_id>', methods=['GET', 'POST'])
+@login_required
+def editar_post(post_id):
+
+    if request.method == 'GET':
+        contenido = Contenido.query.get_or_404(post_id)
+        return render_template('editar_post.html', contenido=contenido)
+    else:
+        contenido = Contenido.query.get_or_404(post_id)
+
+        nuevo_categoria = request.form.get('categoria', "").strip()
+        nuevo_titulo = request.form.get('titulo', "").strip()
+        nuevo_contenido = request.form.get('contenido', "").strip()
+
+        contenido.titulo = nuevo_titulo
+        contenido.contenido = nuevo_contenido
+
+        if nuevo_categoria:
+            categoria = Categoria.query.filter_by(nombre=nuevo_categoria).first()
+            if not categoria:
+                categoria = Categoria(nombre=nuevo_categoria)
+                db.session.add(categoria)
+                db.session.flush()
+            contenido.categoria_id = categoria.id
+
+        db.session.commit()
+
+    return redirect(url_for('posts'))
+
+
+
 
 @app.route('/comentar_post/<int:post_id>', methods=['GET', 'POST'])
 @login_required
@@ -200,11 +230,23 @@ def ver_comentarios(post_id):
     return render_template('ver_comentarios.html', contenido=contenido, comentarios=comentarios)
 
 
+@app.context_processor
+def inject_categorias():
+    categorias = Categoria.query.filter_by(is_active=True).order_by(Categoria.nombre).all()
+    return dict(categorias_disponibles=categorias)
+
+
+@app.route('/categoria/<int:categoria_id>')
+def posts_por_categoria(categoria_id):
+    categoria = Categoria.query.get_or_404(categoria_id)
+    posts = Contenido.query.filter_by(categoria_id=categoria.id, is_active=True).order_by(Contenido.fecha.desc()).all()
+    return render_template('categoria.html', categoria=categoria, posts=posts)
+
 
 # Otras rutas que necesito implementar:
 # - crear contenido (listo ya fue creado el 09 de Julio)
 # - editar_contenido (listo)
 # - eliminar_contenido
 # - ver_contenido (con comentarios) (listo ya fue creado el 10 de Julio)
-# - crear_comentario
-# - gestionar_categorias
+# - crear_comentario (listo)
+# - gestionar_categorias (listo)

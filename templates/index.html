@@ -1,11 +1,9 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <div class="text-center">
-        <h1 class="mb-4">Bienvenido al Miniblog</h1>
-        <p class="lead">Explora las publicaciones de la comunidad, o crea la tuya si estás registrado.</p>
-        <a href="{{ url_for('posts') }}" class="btn btn-primary btn-lg mt-3">
-            Ver Publicaciones
-        </a>
+    <div class="text-center mt-5">
+        <h1>Bienvenido a la plataforma de publicaciones</h1>
+        <p>Explorá las categorías disponibles o ingresá para participar</p>
+        <a href="{{ url_for('posts') }}" class="btn btn-primary btn-lg mt-3">Ingresar</a>
     </div>
 {% endblock %}
