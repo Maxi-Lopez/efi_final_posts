@@ -23,7 +23,14 @@
             </div>
         {% endif %}
     {% endif %}
-    <div>
+
+    {% if current_user.is_authenticated %}
+            <a href="{{ url_for('crear_posts') }}" class="btn btn-info btn-sm">
+                                Crear Post
+                            </a>
+    {% endif %}
+    <br>
+        <div>
         Volver <a href="{{ url_for('index') }}">al inicio</a>
     </div>
 {% endblock %}

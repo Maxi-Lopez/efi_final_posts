@@ -245,12 +245,8 @@ def posts_por_categoria(categoria_id):
 
 
 # Otras rutas que necesito implementar:
-# Dentro de comentarios poner un boton para comentar
 # Dentro de comentarios poner un boton para poder denunciar el post o algun comentario
 #por mas que el post no sea de tu autoria
 # Dentro de categoria poner un placeholder para comentar 
-# En posts poner agregar una nueva categoria y post
-# Dentro de categoria poner un boton para agregar posteo
-# No borrar categoria si no existe ningun post
-# Modificar la base de datos el Contenido por (Post o Entrada)
+# En posts poner agregar una nueva categoria y post 
 

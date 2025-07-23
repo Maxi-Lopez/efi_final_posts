@@ -7,21 +7,34 @@
         <div class="col-md-6">
             <h2 class="text-center">Crear post</h2>
             <form method="POST" action="{{ url_for('crear_posts') }}">
-               <label for="categoria" class="form-label">Categoria de tu post:</label>
-               <input type="text" class="form-control" name="categoria" required>
-               <label for="titulo" class="form-label">Titulo para tu post:</label>
-               <input type="text" class="form-control" name="titulo" required>
-               <label for="contenido">Escribe tu post:</label>
-               <textarea 
-                  id="contenido" 
-                  name="contenido" 
-                  rows="5" 
-                  cols="50" 
-               ></textarea>
-               <button type="submit">Publicar</button>
+               <div class="mb-3">
+                   <label for="categoria" class="form-label">Categoría de tu post:</label>
+                   <input type="text" class="form-control" name="categoria" required>
+               </div>
+
+               <div class="mb-3">
+                   <label for="titulo" class="form-label">Título para tu post:</label>
+                   <input type="text" class="form-control" name="titulo" required>
+               </div>
+
+               <div class="mb-3">
+                   <label for="contenido" class="form-label">Escribe tu post:</label>
+                   <textarea 
+                      id="contenido" 
+                      name="contenido" 
+                      class="form-control"
+                      rows="5" 
+                      required
+                   ></textarea>
+               </div>
+
+               <div class="d-flex justify-content-between">
+                   <button type="submit" class="btn btn-success">Publicar</button>
+                   <a href="{{ url_for('posts') }}" class="btn btn-secondary">Cancelar</a>
+               </div>
             </form>
         </div>
     </div>
-</div>
+  </div>
 {% endif %}
 {% endblock %}
