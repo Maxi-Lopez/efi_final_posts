@@ -1,36 +1,47 @@
 {% extends "layout.html" %}
 
 {% block content %}
-    <h2 class="mb-4">Categorías disponibles</h2>
+<section class="container mt-5">
+    <header class="text-center mb-4">
+        <h2 class="fw-bold">Categorías existentes</h2>
+    </header>
 
     {% if categorias %}
-        <ul class="list-group">
+        <div class="row justify-content-center">
             {% for cat in categorias %}
-                
-                <li class="list-group-item">
-                    <a href="{{ url_for('posts_por_categoria', categoria_id=cat.id) }}">{{ cat.nombre }}</a>
-                </li>
+                <article class="col-12 col-sm-6 col-md-4 col-lg-3 mb-4">
+                    <a href="{{ url_for('posts_por_categoria', categoria_id=cat.id) }}" class="text-decoration-none">
+                        <div class="card border-0 shadow-sm h-100 rounded-4">
+                            <div class="card-body text-center">
+                                <h5 class="card-title text-dark fw-semibold">{{ cat.nombre }}</h5>
+                            </div>
+                        </div>
+                    </a>
+                </article>
             {% endfor %}
-        </ul>
+        </div>
     {% else %}
         {% if current_user.is_authenticated %}
-            <div class="alert alert-warning mt-4">
-                No hay categorías aún. <a href="{{ url_for('crear_posts') }}">¡Creá tu primera publicación!</a>
+            <div class="alert alert-warning mt-4 text-center">
+                No hay categorías aún. 
+                <a href="{{ url_for('crear_posts') }}" class="alert-link">¡Creá tu primera publicación!</a>
             </div>
         {% else %}
-            <div class="alert alert-info mt-4">
-                Todavía no hay publicaciones disponibles. Iniciá sesión para comenzar.
+            <div class="alert alert-info mt-4 text-center">
+                Todavía no hay publicaciones disponibles. 
+                <a href="{{ url_for('login') }}" class="alert-link">Iniciá sesión</a> para comenzar.
             </div>
         {% endif %}
     {% endif %}
 
     {% if current_user.is_authenticated %}
-            <a href="{{ url_for('crear_posts') }}" class="btn btn-info btn-sm">
-                                Crear Post
-                            </a>
+        <footer class="text-center mt-4">
+            <a href="{{ url_for('crear_posts') }}" class="btn btn-info btn-lg">Crear Post</a>
+        </footer>
     {% endif %}
-    <br>
-        <div>
-        Volver <a href="{{ url_for('index') }}">al inicio</a>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Volver al inicio</a>
     </div>
+</section>
 {% endblock %}

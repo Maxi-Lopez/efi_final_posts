@@ -56,7 +56,7 @@ def login():
             next_page = request.args.get('next')   
             return redirect(next_page or url_for('index'))
         else:
-            flash('Usuario o contraseña incorrectos', 'error')
+            flash('Usuario o contraseña incorrectos', 'danger')
     
     return render_template('auth/login.html')
 
@@ -77,11 +77,11 @@ def register():
         if not all([username, email, password, confirm_password]):
             flash('Todos los campos son obligatorios', 'error')
         elif password != confirm_password:
-            flash('Las contraseñas no coinciden', 'error')
+            flash('Las contraseñas no coinciden, verifique los datos', 'danger')
         elif User.query.filter_by(username=username).first():
-            flash('El nombre de usuario ya existe', 'error')
+            flash('El nombre de usuario ya existe, eliha otro nombre', 'danger')
         elif User.query.filter_by(email=email).first():
-            flash('El email ya está registrado', 'error')
+            flash('El email ya está registrado, no puede haber dos cuentas con el mismo email', 'danger')
         else:
             new_user = User(
                 username=username,
