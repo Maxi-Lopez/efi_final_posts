@@ -1,0 +1,68 @@
+# ============================================
+# Python / Flask / uv / Marshmallow
+# ============================================
+
+# Entornos virtuales
+.venv/
+venv/
+env/
+ENV/
+.uv/
+
+# Archivos de dependencias generados
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+pip-wheel-metadata/
+
+# Configuración local o sensible
+.env
+.env.local
+.env.*.local
+instance/
+*.sqlite3
+*.db
+
+# Archivos de logs y temporales
+*.log
+*.pot
+*.pyc
+*.tmp
+*.bak
+*.swp
+.DS_Store
+Thumbs.db
+
+# Archivos de IDEs / editores
+.vscode/
+.idea/
+*.code-workspace
+
+# Cache de tests y herramientas
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+.tox/
+.cache/
+__pypackages__/
+
+# Archivos del sistema operativo
+.svn/
+.hg/
+*.orig
+
+# Archivos del entorno uv
+.uv.lock
+.uv-cache/
+.uv-env/
+
+# ============================================
+# FIN DEL ARCHIVO
+# ============================================
