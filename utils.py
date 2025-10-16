@@ -1,5 +1,3 @@
-# app/utils.py
-
 from flask_jwt_extended import get_jwt
 from functools import wraps
 from flask import jsonify

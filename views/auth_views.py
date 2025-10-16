@@ -1,10 +1,8 @@
-# views/auth_views.py
-
 from flask import request, jsonify
 from flask.views import MethodView
 from flask_jwt_extended import create_access_token
 from marshmallow import ValidationError
-from passlib.hash import bcrypt
+import bcrypt  # <--- ahora usamos bcrypt directamente
 
 from app import db
 from models import User, UserCredentials
@@ -31,7 +29,10 @@ class UserRegisterAPI(MethodView):
         db.session.add(new_user)
         db.session.flush()  # Necesario para obtener ID antes de commit
 
-        password_hash = bcrypt.hash(data['password'])
+        # Truncar la contraseña a 72 bytes y generar hash
+        password_bytes = data['password'][:72].encode('utf-8')
+        password_hash = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode('utf-8')
+
         credenciales = UserCredentials(
             user_id=new_user.id,
             password_hash=password_hash,
@@ -61,7 +62,11 @@ class AuthLoginAPI(MethodView):
         if not user or not user.credential:
             return {"errors": {"credentials": ["Inválidas"]}}, 401
 
-        if not bcrypt.verify(data["password"], user.credential.password_hash):
+        # Verificación de contraseña
+        password_bytes = data["password"][:72].encode('utf-8')
+        stored_hash_bytes = user.credential.password_hash.encode('utf-8')
+
+        if not bcrypt.checkpw(password_bytes, stored_hash_bytes):
             return {"errors": {"credentials": ["Inválidas"]}}, 401
 
         token = create_access_token(

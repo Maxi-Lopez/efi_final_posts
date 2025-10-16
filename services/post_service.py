@@ -1,5 +1,3 @@
-# services/post_service.py
-
 from app import db
 from models import Contenido, Categoria
 from datetime import datetime

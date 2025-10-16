@@ -1,5 +1,3 @@
-# repositories/post_repository.py
-
 from app import db
 from models import Contenido, Categoria
 

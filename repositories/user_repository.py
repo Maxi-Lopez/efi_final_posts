@@ -1,5 +1,3 @@
-# repositories/user_repository.py
-
 from models import User, UserCredentials
 from app import db
 

@@ -1,5 +1,3 @@
-# views/post_views.py
-
 from flask import request
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt

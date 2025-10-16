@@ -1,5 +1,3 @@
-# repositories/comment_repository.py
-
 from app import db
 from models import Comentario
 

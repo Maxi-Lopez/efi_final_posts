@@ -1,5 +1,3 @@
-# services/user_service.py
-
 from app import db
 from models import User, UserCredentials
 from passlib.hash import bcrypt

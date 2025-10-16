@@ -1,5 +1,3 @@
-# views/category_views.py
-
 from flask import request, jsonify
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required

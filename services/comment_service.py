@@ -1,5 +1,3 @@
-# services/comment_service.py
-
 from repositories.comment_repository import CommentRepository
 
 
