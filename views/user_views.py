@@ -7,8 +7,7 @@ from passlib.hash import bcrypt
 from app import db
 from models import User, UserCredentials
 from schemas import UserSchema, RegisterSchema, LoginSchema
-from utils import check_ownership
-from decorators import roles_required
+from decorators import roles_required, check_ownership
 
 
 class UserAPI(MethodView):

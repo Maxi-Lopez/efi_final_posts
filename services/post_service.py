@@ -56,7 +56,7 @@ class PostService:
         return post
 
     def delete_post(self, post_id):
-        """Soft delete: desactiva el post"""
+        """Borrado logico: desactiva el post"""
         post = self.get_post_by_id(post_id)
         post.is_active = False
         db.session.commit()

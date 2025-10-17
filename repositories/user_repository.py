@@ -23,7 +23,7 @@ class UserRepository:
         """Crea un nuevo usuario (sin credenciales)"""
         user = User(name=name, email=email)
         db.session.add(user)
-        db.session.flush()  # permite obtener el ID
+        db.session.flush() 
         return user
 
     @staticmethod
@@ -45,9 +45,7 @@ class UserRepository:
 
     @staticmethod
     def delete_user(user):
-        """Elimina usuario y sus credenciales"""
-        if hasattr(user, "credential") and user.credential:
-            db.session.delete(user.credential)
-        db.session.delete(user)
+        """Desactiva un usuario (borrado lógico)"""
+        user.is_active = False
         db.session.commit()
         return True

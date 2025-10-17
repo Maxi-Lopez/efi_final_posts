@@ -6,7 +6,8 @@ from marshmallow import ValidationError
 from app import db
 from models import Category
 from schemas import CategorySchema
-from decorators import roles_required
+from decorators import roles_required, check_ownership
+
 
 
 class CategoryAPI(MethodView):

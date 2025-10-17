@@ -6,8 +6,7 @@ from marshmallow import ValidationError
 from app import db
 from models import Post, Category
 from schemas import PostSchema
-from decorators import roles_required
-from utils import check_ownership
+from decorators import roles_required, check_ownership
 
 
 class PostAPI(MethodView):

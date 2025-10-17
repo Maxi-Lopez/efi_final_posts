@@ -57,10 +57,10 @@ class UserService:
         return user
 
     def delete_user(self, user_id):
-        """Elimina un usuario y sus credenciales"""
+        """Elimina logicamente un usuario y elimina sus credenciales"""
         user = User.query.get_or_404(user_id)
         if hasattr(user, "credential") and user.credential:
             db.session.delete(user.credential)
-        db.session.delete(user)
+        user.is_active = False
         db.session.commit()
         return True

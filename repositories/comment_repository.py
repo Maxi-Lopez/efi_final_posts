@@ -38,7 +38,7 @@ class CommentRepository:
 
     @staticmethod
     def delete_comment(comment):
-        """Soft delete: oculta el comentario"""
+        """Borrado logico del comentario"""
         comment.is_visible = False
         db.session.commit()
         return comment

@@ -23,6 +23,6 @@ class CommentService:
         return self.repo.update_comment(comment, comment_text, is_visible)
 
     def delete_comment(self, comment_id):
-        """Elimina (soft delete) un comentario"""
+        """Elimina un comentario"""
         comment = self.get_comment_by_id(comment_id)
         return self.repo.delete_comment(comment)

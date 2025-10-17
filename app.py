@@ -9,7 +9,8 @@ app.config['SECRET_KEY'] = 'cualquiercosa'
 app.config['SQLALCHEMY_DATABASE_URI'] = "mysql+pymysql://BD2021:BD2021itec@143.198.156.171:3306/post_db"
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['JWT_SECRET_KEY'] = "supersecretjwtkey"
-app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 86400  # 24h en segundos
+app.config['JWT_ACCESS_TOKEN_EXPIRES'] = 900  # 15 minutos
+
 
 db = SQLAlchemy(app)
 migrate = Migrate(app, db)

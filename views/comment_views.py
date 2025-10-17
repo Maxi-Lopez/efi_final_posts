@@ -6,8 +6,7 @@ from marshmallow import ValidationError
 from app import db
 from models import Comment, Post
 from schemas import CommentSchema
-from decorators import roles_required
-from utils import check_ownership
+from decorators import roles_required, check_ownership
 
 
 class CommentAPI(MethodView):
