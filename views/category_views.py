@@ -8,14 +8,7 @@ from models import Category
 from schemas import CategorySchema
 from decorators import roles_required, check_ownership
 
-
-
 class CategoryAPI(MethodView):
-    """
-    GET /api/categories          -> público
-    POST /api/categories         -> moderator/admin
-    """
-
     def get(self):
         categories = Category.query.filter_by(is_active=True).all()
         return CategorySchema(many=True).dump(categories), 200
@@ -28,23 +21,16 @@ class CategoryAPI(MethodView):
         except ValidationError as err:
             return {"errors": err.messages}, 400
 
-        if Category.query.filter_by(nombre=data['nombre']).first():
-            return {"error": "Categoría ya existe"}, 400
+        if Category.query.filter_by(name=data['name']).first():
+            return {"error": "Category already exists"}, 400
 
-        new_category = Category(nombre=data['nombre'])
+        new_category = Category(name=data['name'])
         db.session.add(new_category)
         db.session.commit()
 
         return CategorySchema().dump(new_category), 201
 
-
 class CategoryDetailAPI(MethodView):
-    """
-    GET /api/categories/<id>    -> público
-    PUT /api/categories/<id>    -> moderator/admin
-    DELETE /api/categories/<id> -> admin
-    """
-
     def get(self, id):
         category = Category.query.get_or_404(id)
         return CategorySchema().dump(category), 200
@@ -55,8 +41,8 @@ class CategoryDetailAPI(MethodView):
         category = Category.query.get_or_404(id)
         try:
             data = CategorySchema(partial=True).load(request.json)
-            if 'nombre' in data:
-                category.nombre = data['nombre']
+            if 'name' in data:
+                category.name = data['name']
             if 'is_active' in data:
                 category.is_active = data['is_active']
             db.session.commit()
@@ -69,8 +55,8 @@ class CategoryDetailAPI(MethodView):
     def delete(self, id):
         category = Category.query.get_or_404(id)
         try:
-            category.is_active = False  # soft delete
+            category.is_active = False
             db.session.commit()
-            return {"message": "Categoría desactivada"}, 200
+            return {"message": "Category deactivated"}, 200
         except Exception as e:
             return {"error": str(e)}, 500

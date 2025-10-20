@@ -13,6 +13,6 @@ class PostSchema(Schema):
     author = fields.Nested("UserSchema", only=["id", "name"], dump_only=True)
     category = fields.Nested("CategorySchema", only=["id", "name"], dump_only=True)
     comments = fields.List(
-        fields.Nested("CommentSchema", exclude=("post_rel",)),
+        fields.Nested("CommentSchema", exclude=("post",)),
         dump_only=True
     )
