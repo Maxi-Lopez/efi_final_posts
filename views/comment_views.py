@@ -10,7 +10,7 @@ from decorators.decorators import roles_required, ownership_required
 class CommentAPI(MethodView):
     def get(self, post_id):
         """Cualquiera puede ver los comentarios"""
-        comments = Comment.query.filter_by(post_id=post_id, is_visible=True).all()
+        comments = Comment.query.filter_by(post_id=post_id, is_active=True).all()
         return CommentSchema(many=True).dump(comments), 200
 
     @jwt_required()
@@ -22,7 +22,7 @@ class CommentAPI(MethodView):
             post_id=post_id,
             author_id=user_id,
             content=data["content"],
-            is_visible=True
+            is_active=True
         )
         db.session.add(new_comment)
         db.session.commit()
@@ -35,7 +35,7 @@ class CommentDetailAPI(MethodView):
     def delete(self, id):
         """Eliminar cualquier comentario (admin/moderator)"""
         comment = Comment.query.get_or_404(id)
-        comment.is_visible = False
+        comment.is_active = False
         db.session.commit()
         return {"message": "Comment deleted"}, 200
 

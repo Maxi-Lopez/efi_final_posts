@@ -17,10 +17,10 @@ class CommentService:
         """Crea un comentario en un post"""
         return self.repo.create_comment(post_id, author_id, comment_text)
 
-    def update_comment(self, comment_id, comment_text=None, is_visible=None):
+    def update_comment(self, comment_id, comment_text=None, is_active=None):
         """Actualiza un comentario"""
         comment = self.get_comment_by_id(comment_id)
-        return self.repo.update_comment(comment, comment_text, is_visible)
+        return self.repo.update_comment(comment, comment_text, is_active)
 
     def delete_comment(self, comment_id):
         """Elimina un comentario"""

@@ -7,7 +7,7 @@ class PostRepository:
         """Returns all posts, active ones or all if include_inactive=True"""
         if include_inactive:
             return Post.query.order_by(Post.created_at.desc()).all()
-        return Post.query.filter_by(is_active=True, is_published=True).order_by(Post.created_at.desc()).all()
+        return Post.query.filter_by(is_active=True, is_active=True).order_by(Post.created_at.desc()).all()
 
     @staticmethod
     def get_by_id(post_id):
@@ -22,7 +22,7 @@ class PostRepository:
             content=content,           
             author_id=author_id,       
             category_id=category_id,   
-            is_published=True
+            is_active=True
         )
         db.session.add(new_post)
         db.session.flush()
@@ -50,7 +50,7 @@ class PostRepository:
     @staticmethod
     def toggle_publish(post, publish_status: bool):
         """Publishes or unpublishes a post"""
-        post.is_published = publish_status
+        post.is_active = publish_status
         db.session.commit()
         return post
 
@@ -60,5 +60,5 @@ class PostRepository:
         return Post.query.filter_by(
             category_id=category_id,   
             is_active=True,
-            is_published=True
+            is_active=True
         ).order_by(Post.created_at.desc()).all()

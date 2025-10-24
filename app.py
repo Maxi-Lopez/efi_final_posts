@@ -16,7 +16,6 @@ migrate = Migrate(app, db)
 jwt = JWTManager(app)
 CORS(app)
 
-# ESTO FUNCIONABA - déjalo así
 from models import User, UserCredentials, Post, Comment, Category
 from views.post_views import PostAPI, PostDetailAPI
 from views.comment_views import CommentAPI, CommentDetailAPI

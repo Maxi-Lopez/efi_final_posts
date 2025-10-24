@@ -4,7 +4,7 @@ class CommentSchema(Schema):
     id = fields.Int(dump_only=True)
     content = fields.Str(required=True)
     created_at = fields.DateTime(dump_only=True)
-    is_visible = fields.Bool(dump_only=True)
+    is_active = fields.Bool(dump_only=True)
     author_id = fields.Int(dump_only=True)
     post_id = fields.Int(required=True)
 

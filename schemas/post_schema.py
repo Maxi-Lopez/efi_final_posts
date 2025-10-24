@@ -6,7 +6,7 @@ class PostSchema(Schema):
     content = fields.Str(required=True)
     created_at = fields.DateTime(dump_only=True)
     updated_at = fields.DateTime(dump_only=True)
-    is_published = fields.Bool(dump_only=True)
+    is_active = fields.Bool(dump_only=True)
     author_id = fields.Int(dump_only=True)
     category_id = fields.Int(allow_none=True)
 

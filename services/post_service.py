@@ -9,7 +9,7 @@ class PostService:
     def get_all_posts(self, include_inactive=False):
         if include_inactive:
             return Post.query.order_by(Post.created_at.desc()).all()
-        return Post.query.filter_by(is_active=True, is_published=True).order_by(Post.created_at.desc()).all()
+        return Post.query.filter_by(is_active=True, is_active=True).order_by(Post.created_at.desc()).all()
 
     def get_post_by_id(self, post_id):
         return Post.query.get_or_404(post_id)
@@ -26,7 +26,7 @@ class PostService:
             content=content,
             author_id=author_id,
             category_id=category.id,
-            is_published=True,
+            is_active=True,
             created_at=datetime.utcnow()
         )
         db.session.add(new_post)
@@ -58,7 +58,7 @@ class PostService:
 
     def toggle_publish(self, post_id, publish_status: bool):
         post = self.get_post_by_id(post_id)
-        post.is_published = publish_status
+        post.is_active = publish_status
         post.updated_at = datetime.utcnow()
         db.session.commit()
         return post
@@ -67,5 +67,5 @@ class PostService:
         return Post.query.filter_by(
             category_id=category_id, 
             is_active=True, 
-            is_published=True
+            is_active=True
         ).order_by(Post.created_at.desc()).all()
