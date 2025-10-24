@@ -7,16 +7,18 @@ from passlib.hash import bcrypt
 from app import db
 from models import User, UserCredentials
 from schemas import UserSchema, RegisterSchema, LoginSchema
-from decorators import roles_required, check_ownership
+from decorators.decorators import roles_required, ownership_required
 
 class UserAPI(MethodView):
     @jwt_required()
     @roles_required("admin")
     def get(self):
+        """Listar todos los usuarios (solo admin)"""
         users = User.query.all()
         return UserSchema(many=True).dump(users), 200
 
     def post(self):
+        """Registro público de usuario con rol 'user'"""
         try:
             data = RegisterSchema().load(request.json)
         except ValidationError as err:
@@ -24,6 +26,10 @@ class UserAPI(MethodView):
 
         if User.query.filter_by(email=data['email']).first():
             return {"error": "Email already in use"}, 400
+
+        requested_role = data.get('role', 'user')
+        if requested_role != 'user':
+            return {"error": "Only 'user' role can be assigned during registration"}, 400
 
         new_user = User(name=data["name"], email=data['email'])
         db.session.add(new_user)
@@ -33,31 +39,24 @@ class UserAPI(MethodView):
         credentials = UserCredentials(
             user_id=new_user.id,
             password_hash=password_hash,
-            role=data['role']
+            role='user'
         )
         db.session.add(credentials)
         db.session.commit()
 
         return UserSchema().dump(new_user), 201
 
+
 class UserDetailAPI(MethodView):
     @jwt_required()
+    @ownership_required("id")  # Usuario puede ver su info o admin
     def get(self, id):
-        current_user_id = int(get_jwt_identity())
-        claims = get_jwt()
-        if claims["role"] != "admin" and current_user_id != id:
-            return {"error": "Not authorized"}, 403
-
         user = User.query.get_or_404(id)
         return UserSchema().dump(user), 200
 
     @jwt_required()
+    @ownership_required("id")  # Usuario puede modificar su info o admin
     def put(self, id):
-        current_user_id = int(get_jwt_identity())
-        claims = get_jwt()
-        if claims["role"] != "admin" and current_user_id != id:
-            return {"error": "Not authorized"}, 403
-
         user = User.query.get_or_404(id)
         try:
             data = UserSchema(partial=True).load(request.json)
@@ -71,38 +70,49 @@ class UserDetailAPI(MethodView):
             return {"errors": err.messages}, 400
 
     @jwt_required()
-    @roles_required("admin")
+    @roles_required("admin")  # Solo admin puede cambiar roles
     def patch(self, id):
         user = User.query.get_or_404(id)
-        try:
-            role = request.json.get("role")
-            if role not in ["user", "moderator", "admin"]:
-                return {"error": "Invalid role"}, 400
+        data = request.get_json()
+        if not data or 'role' not in data:
+            return {"error": "Role field is required"}, 400
 
-            if not hasattr(user, "credential") or not user.credential:
-                return {"error": "User has no credentials"}, 400
+        role = data['role']
+        if role not in ["user", "moderator", "admin"]:
+            return {"error": "Invalid role. Must be 'user', 'moderator' or 'admin'"}, 400
 
-            user.credential.role = role
-            db.session.commit()
-            return {"message": f"Role changed to {role}"}, 200
-        except Exception as e:
-            return {"error": str(e)}, 500
+        if not hasattr(user, "credential") or not user.credential:
+            return {"error": "User has no credentials"}, 400
+
+        current_user_id = int(get_jwt_identity())
+        if user.id == current_user_id and role != "admin":
+            return {"error": "Cannot remove your own admin privileges"}, 400
+
+        user.credential.role = role
+        db.session.commit()
+        return {
+            "message": f"User role updated to {role}",
+            "user": UserSchema().dump(user)
+        }, 200
 
     @jwt_required()
-    @roles_required("admin")
+    @roles_required("admin")  # Solo admin puede eliminar
     def delete(self, id):
         user = User.query.get_or_404(id)
-        try:
-            if hasattr(user, "credential") and user.credential:
-                db.session.delete(user.credential)
-            db.session.delete(user)
-            db.session.commit()
-            return {"message": "User deleted"}, 200
-        except Exception as e:
-            return {"error": str(e)}, 500
+        current_user_id = int(get_jwt_identity())
+        if user.id == current_user_id:
+            return {"error": "Cannot delete your own account"}, 400
+
+        if hasattr(user, "credential") and user.credential:
+            db.session.delete(user.credential)
+        db.session.delete(user)
+        db.session.commit()
+        return {"message": "User deleted"}, 200
+
 
 class AuthLoginAPI(MethodView):
     def post(self):
+        """Login y generación de token JWT"""
         try:
             data = LoginSchema().load(request.json)
         except ValidationError as err:

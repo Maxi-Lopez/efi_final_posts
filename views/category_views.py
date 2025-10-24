@@ -1,12 +1,12 @@
-from flask import request, jsonify
-from flask.views import MethodView
-from flask_jwt_extended import jwt_required
-from marshmallow import ValidationError
-
 from app import db
 from models import Category
 from schemas import CategorySchema
-from decorators import roles_required, check_ownership
+from decorators.decorators import roles_required
+
+from flask import request
+from flask.views import MethodView
+from flask_jwt_extended import jwt_required
+from marshmallow import ValidationError
 
 class CategoryAPI(MethodView):
     def get(self):
@@ -27,7 +27,6 @@ class CategoryAPI(MethodView):
         new_category = Category(name=data['name'])
         db.session.add(new_category)
         db.session.commit()
-
         return CategorySchema().dump(new_category), 201
 
 class CategoryDetailAPI(MethodView):
@@ -54,9 +53,6 @@ class CategoryDetailAPI(MethodView):
     @roles_required("admin")
     def delete(self, id):
         category = Category.query.get_or_404(id)
-        try:
-            category.is_active = False
-            db.session.commit()
-            return {"message": "Category deactivated"}, 200
-        except Exception as e:
-            return {"error": str(e)}, 500
+        category.is_active = False
+        db.session.commit()
+        return {"message": "Category deactivated"}, 200

@@ -1,10 +1,10 @@
+from app import db
 from flask import request, jsonify
 from flask.views import MethodView
 from flask_jwt_extended import create_access_token
 from marshmallow import ValidationError
 import bcrypt  
 
-from app import db
 from models import User, UserCredentials
 from schemas import RegisterSchema, LoginSchema, UserSchema
 
@@ -18,9 +18,13 @@ class UserRegisterAPI(MethodView):
         if User.query.filter_by(email=data['email']).first():
             return {"error": "Email already in use"}, 400
 
-        new_user = User(name=data["name"], email=data['email'])
+        requested_role = data.get('role', 'user')
+        if requested_role != 'user':
+            return {"error": "Only 'user' role can be assigned during registration"}, 400
+
+        new_user = User(name=data["name"], email=data['email'])  # Sin role
         db.session.add(new_user)
-        db.session.flush()  
+        db.session.flush()
 
         password_bytes = data['password'].encode('utf-8')
         password_hash = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode('utf-8')
@@ -28,12 +32,12 @@ class UserRegisterAPI(MethodView):
         credentials = UserCredentials(
             user_id=new_user.id,
             password_hash=password_hash,
-            role=data.get('role', 'user')
+            role='user'  
         )
         db.session.add(credentials)
         db.session.commit()
 
-        return UserSchema().dump(new_user), 201
+        return UserSchema().dump(new_user), 201  
 
 class AuthLoginAPI(MethodView):
     def post(self):
