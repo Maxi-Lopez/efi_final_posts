@@ -35,8 +35,7 @@ app.add_url_rule("/api/posts/<int:id>", view_func=PostDetailAPI.as_view("post_de
 
 # Comments
 app.add_url_rule("/api/posts/<int:post_id>/comments", view_func=CommentAPI.as_view("comments_api"))
-app.add_url_rule("/api/comments/<int:id>", view_func=CommentDetailAPI.as_view("comment_detail_api"))
-
+app.add_url_rule("/api/comments/<int:id>", view_func=CommentDetailAPI.as_view("comment_detail_api"), methods=["GET", "PUT", "DELETE"])
 # Categories
 app.add_url_rule("/api/categories", view_func=CategoryAPI.as_view("categories_api"))
 app.add_url_rule("/api/categories/<int:id>", view_func=CategoryDetailAPI.as_view("category_detail_api"))

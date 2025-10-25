@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from flask.views import MethodView
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
 from app import db
 from models import Comment
@@ -31,24 +31,34 @@ class CommentAPI(MethodView):
 class CommentDetailAPI(MethodView):
 
     @jwt_required()
-    @roles_required("admin", "moderator")  # solo admin/moderator puede borrar cualquier comentario
-    def delete(self, id):
-        """Eliminar cualquier comentario (admin/moderator)"""
+    def put(self, id):
+        """Editar comentario solo si eres propietario o admin/moderator"""
         comment = Comment.query.get_or_404(id)
-        comment.is_active = False
+        current_user_id = int(get_jwt_identity())
+        claims = get_jwt()
+        role = claims.get("role", "")
+
+        if role not in ["admin", "moderator"] and comment.author_id != current_user_id:
+            return {"error": "Not authorized"}, 403
+
+        data = request.get_json()
+        if 'content' in data:
+            comment.content = data['content']
         db.session.commit()
-        return {"message": "Comment deleted"}, 200
+        return CommentSchema().dump(comment), 200
 
     @jwt_required()
-    @ownership_required("id")  # solo el autor puede editar
-    def put(self, id):
-        """Editar comentario solo si eres propietario"""
+    def delete(self, id):
+        """Eliminar comentario si eres admin/moderator o el autor"""
         comment = Comment.query.get_or_404(id)
-        try:
-            data = CommentSchema(partial=True).load(request.json)
-            if 'content' in data:
-                comment.content = data['content']
+        user_id = int(get_jwt_identity())
+        claims = get_jwt()
+        role = claims.get("role", "")
+
+        # Check ownership o rol
+        if role in ["admin", "moderator"] or comment.author_id == user_id:
+            comment.is_active = False
             db.session.commit()
-            return CommentSchema().dump(comment), 200
-        except ValidationError as err:
-            return {"errors": err.messages}, 400
+            return {"message": "Comment deleted"}, 200
+        else:
+            return {"error": "Not authorized"}, 403
