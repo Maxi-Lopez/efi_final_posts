@@ -2,7 +2,7 @@ from flask import request
 from flask.views import MethodView
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt, create_access_token
 from marshmallow import ValidationError
-from passlib.hash import bcrypt
+import bcrypt
 
 from app import db
 from models import User, UserCredentials
@@ -110,9 +110,39 @@ class UserDetailAPI(MethodView):
         return {"message": "User deleted"}, 200
 
 
+class UserRegisterAPI(MethodView):
+    def post(self):
+        try:
+            data = RegisterSchema().load(request.json)
+        except ValidationError as err:
+            return {"errors": err.messages}, 400
+
+        if User.query.filter_by(email=data['email']).first():
+            return {"error": "Email already in use"}, 400
+
+        requested_role = data.get('role', 'user')
+        if requested_role != 'user':
+            return {"error": "Only 'user' role can be assigned during registration"}, 400
+
+        new_user = User(name=data["name"], email=data['email'])  # Sin role
+        db.session.add(new_user)
+        db.session.flush()
+
+        password_bytes = data['password'].encode('utf-8')
+        password_hash = bcrypt.hashpw(password_bytes, bcrypt.gensalt()).decode('utf-8')
+
+        credentials = UserCredentials(
+            user_id=new_user.id,
+            password_hash=password_hash,
+            role='user'  
+        )
+        db.session.add(credentials)
+        db.session.commit()
+
+        return UserSchema().dump(new_user), 201  
+
 class AuthLoginAPI(MethodView):
     def post(self):
-        """Login y generación de token JWT"""
         try:
             data = LoginSchema().load(request.json)
         except ValidationError as err:
@@ -122,7 +152,10 @@ class AuthLoginAPI(MethodView):
         if not user or not user.credential:
             return {"errors": {"credentials": ["Invalid credentials"]}}, 401
 
-        if not bcrypt.verify(data["password"], user.credential.password_hash):
+        password_bytes = data["password"].encode('utf-8')
+        stored_hash_bytes = user.credential.password_hash.encode('utf-8')
+
+        if not bcrypt.checkpw(password_bytes, stored_hash_bytes):
             return {"errors": {"credentials": ["Invalid credentials"]}}, 401
 
         token = create_access_token(
@@ -132,4 +165,5 @@ class AuthLoginAPI(MethodView):
                 "role": user.credential.role
             }
         )
+
         return {"access_token": token}, 200

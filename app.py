@@ -21,14 +21,14 @@ from views.post_views import PostAPI, PostDetailAPI
 from views.comment_views import CommentAPI, CommentDetailAPI
 from views.category_views import CategoryAPI, CategoryDetailAPI
 from views.user_views import UserAPI, UserDetailAPI
-from views.auth_views import UserRegisterAPI, AuthLoginAPI
+from views.user_views import UserRegisterAPI, AuthLoginAPI, UserAPI, UserDetailAPI
 from views.stats_views import StatsAPI
 
 # Users
-app.add_url_rule("/api/users", view_func=UserAPI.as_view("users_api"))
-app.add_url_rule("/api/users/<int:id>", view_func=UserDetailAPI.as_view("user_detail_api"))
-app.add_url_rule("/api/register", view_func=UserRegisterAPI.as_view("user_register_api"))
-app.add_url_rule("/api/login", view_func=AuthLoginAPI.as_view("auth_login_api"))
+app.add_url_rule('/api/register', view_func=UserRegisterAPI.as_view('register'))
+app.add_url_rule('/api/login', view_func=AuthLoginAPI.as_view('login'))
+app.add_url_rule('/api/users', view_func=UserAPI.as_view('users'))
+app.add_url_rule('/api/users/<int:id>', view_func=UserDetailAPI.as_view('user_detail'))
 
 # Posts
 app.add_url_rule("/api/posts", view_func=PostAPI.as_view("posts_api"))

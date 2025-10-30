@@ -22,7 +22,7 @@ class UserRepository:
         """Crea un usuario y sus credenciales en un solo paso."""
         user = User(name=name, email=email, is_active=True)
         db.session.add(user)
-        db.session.flush()  # Necesario para obtener el ID
+        db.session.flush()  
 
         credentials = UserCredentials(
             user_id=user.id,
