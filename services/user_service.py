@@ -1,59 +1,56 @@
-from app import db
-from models import User, UserCredentials
 from passlib.hash import bcrypt
+from repositories.user_repository import UserRepository
 
 class UserService:
     def __init__(self):
-        pass
+        self.repo = UserRepository()
 
-    def get_all_users(self):
-        return User.query.all()
+    def get_all_users(self, include_inactive=False):
+        """Obtiene todos los usuarios (puede incluir inactivos)."""
+        users = self.repo.get_all()
+        if not include_inactive:
+            users = [u for u in users if u.is_active]
+        return users
 
     def get_user_by_id(self, user_id):
-        return User.query.get(user_id)
+        """Obtiene un usuario por ID."""
+        user = self.repo.get_by_id(user_id)
+        if not user:
+            raise ValueError("User not found")
+        return user
 
     def create_user(self, name, email, password, role="user"):
-        if User.query.filter_by(email=email).first():
+        """Crea un nuevo usuario con credenciales."""
+        if self.repo.get_by_email(email):
             raise ValueError("Email already in use")
 
-        new_user = User(name=name, email=email)
-        db.session.add(new_user)
-        db.session.flush()
+        new_user = self.repo.create_user(name, email)
 
-        password_hash = bcrypt.hash(password)
-        credentials = UserCredentials(
+        credentials = new_user.credential or self.repo.create_credentials(
             user_id=new_user.id,
-            password_hash=password_hash,
+            password_hash=bcrypt.hash(password),
             role=role
         )
-        db.session.add(credentials)
-        db.session.commit()
-
         return new_user
 
     def update_user(self, user_id, name=None, email=None):
-        user = User.query.get_or_404(user_id)
-        if name:
-            user.name = name
-        if email:
-            user.email = email
-        db.session.commit()
-        return user
+        """Actualiza un usuario existente."""
+        user = self.get_user_by_id(user_id)
+        updated_user = self.repo.update_user(user, name, email)
+        return updated_user
 
     def change_role(self, user_id, new_role):
-        user = User.query.get_or_404(user_id)
+        """Cambia el rol de un usuario."""
+        user = self.get_user_by_id(user_id)
         if not hasattr(user, "credential") or not user.credential:
             raise ValueError("User has no credentials")
         if new_role not in ["user", "moderator", "admin"]:
             raise ValueError("Invalid role")
-        user.credential.role = new_role
-        db.session.commit()
+        self.repo.change_role(user.credential, new_role)
         return user
 
     def delete_user(self, user_id):
-        user = User.query.get_or_404(user_id)
-        if hasattr(user, "credential") and user.credential:
-            db.session.delete(user.credential)
-        user.is_active = False
-        db.session.commit()
+        """Desactiva un usuario y sus credenciales."""
+        user = self.get_user_by_id(user_id)
+        self.repo.delete_user(user)
         return True

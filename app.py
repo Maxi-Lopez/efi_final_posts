@@ -22,6 +22,7 @@ from views.comment_views import CommentAPI, CommentDetailAPI
 from views.category_views import CategoryAPI, CategoryDetailAPI
 from views.user_views import UserAPI, UserDetailAPI
 from views.auth_views import UserRegisterAPI, AuthLoginAPI
+from views.stats_views import StatsAPI
 
 # Users
 app.add_url_rule("/api/users", view_func=UserAPI.as_view("users_api"))
@@ -39,3 +40,5 @@ app.add_url_rule("/api/comments/<int:id>", view_func=CommentDetailAPI.as_view("c
 # Categories
 app.add_url_rule("/api/categories", view_func=CategoryAPI.as_view("categories_api"))
 app.add_url_rule("/api/categories/<int:id>", view_func=CategoryDetailAPI.as_view("category_detail_api"))
+# Estadisticas
+app.add_url_rule("/api/stats", view_func=StatsAPI.as_view("stats_api"), methods=["GET"])

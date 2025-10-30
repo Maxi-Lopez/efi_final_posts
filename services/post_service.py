@@ -1,71 +1,54 @@
-from app import db
-from models import Post, Category
 from datetime import datetime
+from repositories.post_repository import PostRepository
 
 class PostService:
     def __init__(self):
-        pass
+        self.repo = PostRepository()
 
     def get_all_posts(self, include_inactive=False):
-        if include_inactive:
-            return Post.query.order_by(Post.created_at.desc()).all()
-        return Post.query.filter_by(is_active=True, is_active=True).order_by(Post.created_at.desc()).all()
+        """Obtiene todos los posts (puede incluir inactivos)."""
+        return self.repo.get_all(include_inactive)
 
     def get_post_by_id(self, post_id):
-        return Post.query.get_or_404(post_id)
+        """Obtiene un post por su ID."""
+        post = self.repo.get_by_id(post_id)
+        if not post:
+            raise ValueError("Post not found")
+        return post
 
     def create_post(self, title, content, author_id, category_name):
-        category = Category.query.filter_by(name=category_name).first()
-        if not category:
-            category = Category(name=category_name)
-            db.session.add(category)
-            db.session.flush()
-
-        new_post = Post(
+        """Crea un post y su categoría si no existe."""
+        category = self.repo.get_or_create_category(category_name)
+        new_post = self.repo.create_post(
             title=title,
             content=content,
             author_id=author_id,
-            category_id=category.id,
-            is_active=True,
-            created_at=datetime.utcnow()
+            category_id=category.id
         )
-        db.session.add(new_post)
-        db.session.commit()
         return new_post
 
     def update_post(self, post_id, title=None, content=None, category_name=None):
+        """Actualiza un post existente."""
         post = self.get_post_by_id(post_id)
-        if title:
-            post.title = title
-        if content:
-            post.content = content
+        category_id = None
         if category_name:
-            category = Category.query.filter_by(name=category_name).first()
-            if not category:
-                category = Category(name=category_name)
-                db.session.add(category)
-                db.session.flush()
-            post.category_id = category.id
-        post.updated_at = datetime.utcnow()
-        db.session.commit()
-        return post
+            category = self.repo.get_or_create_category(category_name)
+            category_id = category.id
+        updated_post = self.repo.update_post(
+            post, title=title, content=content, category_id=category_id
+        )
+        return updated_post
 
     def delete_post(self, post_id):
+        """Desactiva un post."""
         post = self.get_post_by_id(post_id)
-        post.is_active = False
-        db.session.commit()
-        return post
+        return self.repo.delete_post(post)
 
     def toggle_publish(self, post_id, publish_status: bool):
+        """Publica o despublica un post."""
         post = self.get_post_by_id(post_id)
-        post.is_active = publish_status
-        post.updated_at = datetime.utcnow()
-        db.session.commit()
-        return post
+        return self.repo.toggle_publish(post, publish_status)
 
     def get_posts_by_category(self, category_id):
-        return Post.query.filter_by(
-            category_id=category_id, 
-            is_active=True, 
-            is_active=True
-        ).order_by(Post.created_at.desc()).all()
+        """Obtiene posts activos de una categoría."""
+        return self.repo.get_posts_by_category(category_id)
