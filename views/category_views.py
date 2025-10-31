@@ -14,7 +14,6 @@ class CategoryAPI(MethodView):
         return CategorySchema(many=True).dump(categories), 200
 
     @jwt_required()
-    @roles_required("moderator", "admin")
     def post(self):
         try:
             data = CategorySchema().load(request.json)

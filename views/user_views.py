@@ -166,4 +166,11 @@ class AuthLoginAPI(MethodView):
             }
         )
 
-        return {"access_token": token}, 200
+        return {"access_token": token,
+                "user": {
+                    "id": user.id,
+                    "name": user.name,
+                    "email": user.email,
+                    "role": user.credential.role
+                }
+            }, 200

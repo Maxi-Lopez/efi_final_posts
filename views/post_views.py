@@ -19,15 +19,27 @@ class PostAPI(MethodView):
         from flask_jwt_extended import get_jwt_identity
         user_id = int(get_jwt_identity())
         data = request.get_json()
+
+        # Validar que venga la categoría
+        category_id = data.get('category_id')
+        if not category_id:
+            return {"error": "Category is required"}, 400
+
+        category = Category.query.get(category_id)
+        if not category:
+            return {"error": "Category not found"}, 404
+
         new_post = Post(
             title=data['title'],
             content=data['content'],
             author_id=user_id,
+            category_id=category.id,  
             is_active=True
         )
         db.session.add(new_post)
         db.session.commit()
         return PostSchema().dump(new_post), 201
+
 
 class PostDetailAPI(MethodView):
     def get(self, id):
