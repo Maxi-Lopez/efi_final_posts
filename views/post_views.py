@@ -6,6 +6,8 @@ from app import db
 from models import Post, Category
 from schemas import PostSchema
 from decorators.decorators import roles_required, ownership_required
+from marshmallow import ValidationError
+
 
 class PostAPI(MethodView):
     def get(self):
@@ -75,6 +77,36 @@ class PostDetailAPI(MethodView):
             return PostSchema().dump(post), 200
         except ValidationError as err:
             return {"errors": err.messages}, 400
+
+
+    @jwt_required()
+    @ownership_required("id")
+    def patch(self, id):
+        post = Post.query.get_or_404(id)
+        from flask_jwt_extended import get_jwt_identity, get_jwt
+        current_user_id = int(get_jwt_identity())
+        claims = get_jwt()
+
+        try:
+            data = PostSchema(partial=True).load(request.json)
+            
+            if 'title' in data:
+                post.title = data['title']
+            if 'content' in data:
+                post.content = data['content']
+            if 'is_active' in data and claims['role'] in ['admin', 'moderator']:
+                post.is_active = data['is_active']
+            if 'category_id' in data:
+                category = Category.query.get(data['category_id'])
+                if not category:
+                    return {"error": "Category not found"}, 404
+                post.category_id = category.id
+
+            db.session.commit()
+            return PostSchema().dump(post), 200
+        except ValidationError as err:
+            return {"errors": err.messages}, 400
+
 
     @jwt_required()
     @ownership_required("id")

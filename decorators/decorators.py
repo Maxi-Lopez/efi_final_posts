@@ -11,15 +11,13 @@ def roles_required(*allowed_roles):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            try:
-                verify_jwt_in_request()
-                claims = get_jwt()
-                role = claims.get("role", "")
-                if role not in allowed_roles:
-                    return jsonify({"error": "Not authorized"}), 403
-                return func(*args, **kwargs)
-            except Exception as e:
-                return jsonify({"error": "Invalid token"}), 401
+            # Solo verificar JWT y roles
+            verify_jwt_in_request()
+            claims = get_jwt()
+            role = claims.get("role", "")
+            if role not in allowed_roles:
+                return jsonify({"error": "Not authorized"}), 403
+            return func(*args, **kwargs)
         return wrapper
     return decorator
 
@@ -42,28 +40,27 @@ def ownership_required(resource_id_field):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            try:
-                verify_jwt_in_request()
-                claims = get_jwt()
-                role = claims.get("role", "")
-                current_user_id = int(get_jwt_identity())
+            # Primero verificamos JWT
+            verify_jwt_in_request()
+            claims = get_jwt()
+            role = claims.get("role", "")
+            current_user_id = int(get_jwt_identity())
 
-                resource_id = kwargs.get(resource_id_field)
-                if resource_id is None:
-                    return jsonify({"error": "Could not determine resource ID"}), 400
+            resource_id = kwargs.get(resource_id_field)
+            if resource_id is None:
+                return jsonify({"error": "Could not determine resource ID"}), 400
 
-                # ✅ buscar el post y verificar ownership
-                post = Post.query.get(resource_id)
-                if not post:
-                    return jsonify({"error": "Post not found"}), 404
+            # Buscar el post
+            post = Post.query.get(resource_id)
+            if not post:
+                return jsonify({"error": "Post not found"}), 404
 
-                if role in ["admin", "moderator"] or post.author_id == current_user_id:
-                    return func(*args, **kwargs)
-
+            # Solo admin, moderator o propietario puede continuar
+            if role not in ["admin", "moderator"] and post.author_id != current_user_id:
                 return jsonify({"error": "Not authorized"}), 403
 
-            except Exception as e:
-                return jsonify({"error": f"Invalid token: {str(e)}"}), 401
+            # Ejecutar la función, cualquier otro error sube normalmente
+            return func(*args, **kwargs)
 
         return wrapper
     return decorator

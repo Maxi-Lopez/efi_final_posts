@@ -2,7 +2,9 @@
 
 # Proyecto API REST con Flask
 
-Este proyecto es una **API REST** construida con **Flask**, usando **SQLAlchemy**, **Marshmallow**, y **JWT** para autenticación y autorización basada en roles (RBAC). Permite gestionar usuarios, posts, categorías y comentarios, con control de permisos para distintos roles: `user`, `moderator`, `admin`.
+Este proyecto es una **API REST** construida con **Flask**, utilizando **SQLAlchemy**, **Marshmallow** y **JWT** para autenticación y autorización basada en roles (RBAC). Permite gestionar usuarios, posts, categorías y comentarios, con control de permisos para distintos roles: `user`, `moderator` y `admin`.
+
+Se utiliza **MethodView** para definir los endpoints de manera modular y clara.
 
 ---
 
@@ -11,50 +13,47 @@ Este proyecto es una **API REST** construida con **Flask**, usando **SQLAlchemy*
 - CRUD de **usuarios**, con registro y login.
 - CRUD de **posts** y **categorías**.
 - CRUD de **comentarios** asociados a posts.
-- Autenticación JWT.
-- Control de acceso basado en roles (RBAC).
-- Soft delete en posts, comentarios y categorías.
-- Estructura modular: `models`, `schemas`, `repositories`, `services`, `views`.
+- Autenticación JWT y manejo de tokens.
+- Control de acceso basado en roles ("admin", "moderator" y "user").
+- **Soft delete** en posts, comentarios y categorías.
+- Estructura modular: `models`, `schemas`, `repositories`, `services`, `views`, `decorators`.
 - Validación de datos con **Marshmallow**.
-- Seguridad en passwords con **passlib** (`bcrypt`).
+- Seguridad en contraseñas con **passlib** (`bcrypt`).
 
 ---
 
 ## Estructura del proyecto
 
+
 ```
-.
 ├── app.py
-├── decorators.py
-├── utils.py
-├── requirements.txt
+├── decorators/decorators.py
 ├── models/
-│   ├── __init__.py
-│   ├── user_model.py
-│   ├── post_model.py
+│   ├── category_model.py
 │   ├── comment_model.py
-│   └── category_model.py
-├── schemas/
-│   ├── __init__.py
-│   ├── user_schema.py
-│   ├── post_schema.py
-│   ├── comment_schema.py
-│   └── category_schema.py
+│   ├── post_model.py
+│   └── user_model.py
 ├── repositories/
-│   ├── user_repository.py
+│   ├── category_repository.py
+│   ├── comment_repository.py
 │   ├── post_repository.py
-│   └── comment_repository.py
+│   └── user_repository.py
+├── schemas/
+│   ├── category_schema.py
+│   ├── comment_schema.py
+│   ├── post_schema.py
+│   └── user_schema.py
 ├── services/
-│   ├── user_service.py
+│   ├── category_service.py
+│   ├── comment_service.py
 │   ├── post_service.py
-│   └── comment_service.py
+│   └── user_service.py
 └── views/
-    ├── auth_views.py
-    ├── user_views.py
-    ├── post_views.py
+    ├── category_views.py
     ├── comment_views.py
-    └── category_views.py
-```
+    ├── post_views.py
+    └── user_views.py
+
 
 ---
 
@@ -63,8 +62,8 @@ Este proyecto es una **API REST** construida con **Flask**, usando **SQLAlchemy*
 1. Clonar el repositorio:
 
 ```bash
-git clone <URL_DEL_REPOSITORIO>
-cd <NOMBRE_REPOSITORIO>
+git clone https://github.com/Maxi-Lopez/EFI_LOPEZ_LEJTNEKER.git
+cd EFI_LOPEZ_LEJTNEKER
 ```
 
 2. Crear y activar entorno virtual:
@@ -81,13 +80,19 @@ source .venv/bin/activate  # Linux/Mac
 pip install -r requirements.txt
 ```
 
-4. Configurar variables de entorno (por ejemplo, secret key para JWT).
+4. Ejecutar aplicacion.
+
+```bash
+uv run flask run
+```
+
+uv run flask run
 
 ---
 
 ## Uso
 
-1. Inicializar la base de datos y migraciones (si se usa Flask-Migrate):
+5. Inicializar la base de datos y migraciones (si se usa Flask-Migrate):
 
 ```bash
 flask db init
@@ -95,7 +100,7 @@ flask db migrate
 flask db upgrade
 ```
 
-2. Ejecutar la aplicación:
+6. Ejecutar la aplicación:
 
 ```bash
 uv run flask
@@ -103,31 +108,86 @@ uv run flask
 flask --app app run
 ```
 
-3. Acceder a las rutas de la API según los endpoints definidos en los views:
+7. Endpoints principales
 
-- `/api/register` → Registro de usuario
-- `/api/login` → Login
-- `/api/users` → Gestión de usuarios
-- `/api/posts` → Gestión de posts
-- `/api/categories` → Gestión de categorías
-- `/api/posts/<id>/comments` → Gestión de comentarios
+*   Usuarios:
+
+    *   POST /api/register → Registro de usuario
+
+    *   POST /api/login → Login
+
+    *   GET /api/users → Listar usuarios
+
+    *   GET /api/users/<id> → Ver usuario
+
+    *   PUT /api/users/<id> → Actualizar usuario
+
+    *   DELETE /api/users/<id> → Eliminar usuario (soft delete)
+
+*   Posts:
+
+    *   GET /api/posts → Listar posts
+
+    *   POST /api/posts → Crear post (requiere JWT)
+
+    *   GET /api/posts/<id> → Ver post
+
+    *   PUT /api/posts/<id> → Editar post (requiere JWT y ownership)
+
+    *   DELETE /api/posts/<id> → Eliminar post (soft delete, requiere JWT y ownership)
+
+    *   Comentarios:
+
+    *   GET /api/posts/<post_id>/comments → Listar comentarios
+
+    *   POST /api/posts/<post_id>/comments → Crear comentario (requiere JWT)
+
+    *   PUT /api/comments/<id> → Editar comentario (requiere JWT y ownership)
+
+    *   DELETE /api/comments/<id> → Eliminar comentario (soft delete, requiere JWT y ownership)
+
+*   Categorías:
+
+    *   GET /api/categories → Listar categorías
+
+    *   POST /api/categories → Crear categoría (requiere JWT)
+
+    *   GET /api/categories/<id> → Ver categoría
+
+    *   PUT /api/categories/<id> → Editar categoría (requiere JWT)
+
+    *   DELETE /api/categories/<id> → Eliminar categoría (soft delete, requiere JWT)
+
+*   Estadísticas:
+
+    *   GET /api/stats → Obtener estadísticas generales de posts y comentarios
 
 ---
 
-## Tecnologías
+## Tecnologías utilizadas
 
 - Python 3.x
+
 - Flask
+
 - Flask-JWT-Extended
+
+- Flask-Migrate
+
+- Flask-CORS
+
 - SQLAlchemy
+
 - Marshmallow
+
 - passlib (bcrypt)
-- PostgreSQL / MySQL / SQLite (según configuración)
+
+- MySQL / MariaDB
 
 ---
 
-## Autor
+## Autores
 
-**Maxi Lopez**  
+**Maximiliano Lopez y Agustin Lejtneker** 
 Idea original basada en la estructura de Matías Javier Lucero.
 
