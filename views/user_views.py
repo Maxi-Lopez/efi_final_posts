@@ -124,7 +124,7 @@ class UserRegisterAPI(MethodView):
         if requested_role != 'user':
             return {"error": "Only 'user' role can be assigned during registration"}, 400
 
-        new_user = User(name=data["name"], email=data['email'])  # Sin role
+        new_user = User(name=data["name"], email=data['email'])   
         db.session.add(new_user)
         db.session.flush()
 

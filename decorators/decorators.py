@@ -2,6 +2,7 @@
 from functools import wraps
 from flask import jsonify
 from flask_jwt_extended import get_jwt, get_jwt_identity, verify_jwt_in_request
+from models import Post
 
 # --------------------------------------
 # 🔹 Verifica si el usuario tiene rol permitido
@@ -37,7 +38,7 @@ def check_ownership(current_user_id, resource_owner_id, user_role=None):
 # --------------------------------------
 # 🔹 Decorador para verificar ownership
 # --------------------------------------
-def ownership_required(resource_user_id_field):
+def ownership_required(resource_id_field):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
@@ -46,16 +47,23 @@ def ownership_required(resource_user_id_field):
                 claims = get_jwt()
                 role = claims.get("role", "")
                 current_user_id = int(get_jwt_identity())
-                resource_owner_id = kwargs.get(resource_user_id_field)
 
-                if resource_owner_id is None:
-                    return jsonify({"error": "Could not determine owner"}), 400
+                resource_id = kwargs.get(resource_id_field)
+                if resource_id is None:
+                    return jsonify({"error": "Could not determine resource ID"}), 400
 
-                if not check_ownership(current_user_id, resource_owner_id, role):
-                    return jsonify({"error": "Not authorized"}), 403
+                # ✅ buscar el post y verificar ownership
+                post = Post.query.get(resource_id)
+                if not post:
+                    return jsonify({"error": "Post not found"}), 404
 
-                return func(*args, **kwargs)
+                if role in ["admin", "moderator"] or post.author_id == current_user_id:
+                    return func(*args, **kwargs)
+
+                return jsonify({"error": "Not authorized"}), 403
+
             except Exception as e:
-                return jsonify({"error": "Invalid token"}), 401
+                return jsonify({"error": f"Invalid token: {str(e)}"}), 401
+
         return wrapper
     return decorator
